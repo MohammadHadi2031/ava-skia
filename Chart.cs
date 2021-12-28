@@ -14,38 +14,39 @@ namespace AvaSkia
     public class Chart
     {
         public float SignalPeriod { get; set; }
-        public int Limit { get; set; }
-        public bool HasNewPoints { get; private set; }
-        public List<float> Points { get; set; }
-
+        public List<Series> Series { get; set; }
+        
         public Chart()
         {
-            Points = new List<float>();
-        }
-
-        public void AddPoints(float[] points)
-        {
-            Points.AddRange(points);
-
-            if (Points.Count > Limit)
-            {
-                Points.RemoveRange(0, Points.Count - Limit);
-            }
+            Series = new List<Series>();
         }
 
         public void Draw(SKCanvas canvas, Rect bounds)
         {
-            var mergeSize = (int)Math.Floor(Limit / bounds.Width);
+            var count = Series.Count;
+            var height = bounds.Height / count;
 
-            var downSampledPoints = GetDownSampledPoints(Points, mergeSize);
+            for (int i = 0; i < count; i++)
+            {
+                var y = i * height;
+                var b = new Rect(bounds.X, y, bounds.Width, height);
+                DrawSeries(canvas, b, Series[i]);
+            }
+        }
+
+        private static void DrawSeries(SKCanvas canvas, Rect bounds, Series series)
+        {
+            var mergeSize = (int)Math.Floor(series.Limit / bounds.Width);
+            //mergeSize = 1;
+            var downSampledPoints = GetDownSampledPoints(series.Points, mergeSize);
 
             var maxY = downSampledPoints.Max(x => x.Y);
             var minY = downSampledPoints.Min(x => x.Y);
 
             var yCoeff = (float)(bounds.Height / (maxY - minY));
-            var yBias = -minY * yCoeff;
+            var yBias = -minY * yCoeff + (float)bounds.Y;
 
-            var xCoeff = (float)(bounds.Width / Limit);
+            var xCoeff = (float)(bounds.Width / series.Limit);
             var xBias = 0f;
 
             var screenPoints = GetScreenPoints(downSampledPoints, xCoeff, xBias, yCoeff, yBias);
@@ -59,7 +60,6 @@ namespace AvaSkia
 
                 DrawSignal(canvas, paint, screenPoints);
             }
-
         }
 
         private static SamplePoint[] GetDownSampledPoints(List<float> points, int mergeSize)

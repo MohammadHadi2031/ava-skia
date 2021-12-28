@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+using Avalonia.Threading;
 using SkiaSharp;
 
 namespace AvaSkia
@@ -13,6 +14,7 @@ namespace AvaSkia
     public class MicrochartControl : Control
     {
         private CustomDrawingOperation custom = new CustomDrawingOperation();
+        private static Stopwatch controlStopwatch = Stopwatch.StartNew();
 
         private Chart chart;
 
@@ -37,6 +39,7 @@ namespace AvaSkia
             this.custom.Chart = this.chart;
 
             context.Custom(custom);
+            Dispatcher.UIThread.InvokeAsync(InvalidateVisual, DispatcherPriority.Background);
         }
 
         private class CustomDrawingOperation : ICustomDrawOperation
@@ -50,6 +53,8 @@ namespace AvaSkia
 
             public void Render(IDrawingContextImpl context)
             {
+                Debug.WriteLine($"static stopwatch: {controlStopwatch.Elapsed}");
+
                 var stopwatch = Stopwatch.StartNew();
 
                 //var bitmap = new SKBitmap((int)Bounds.Width, (int)Bounds.Height, false);

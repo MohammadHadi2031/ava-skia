@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Timers;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -16,7 +17,11 @@ namespace AvaSkia
 {
     public partial class MainWindow : Window
     {
+        private const int SamplingFrequency = 64000;
+
+
         private MicrochartControl control;
+        private IDataGenerator[] generators;
 
         public MainWindow()
         {
@@ -30,38 +35,45 @@ namespace AvaSkia
         {
             AvaloniaXamlLoader.Load(this);
 
-            const int SamplingFrequency = 64000;
-
-
-            SinDataGenerator generator = new SinDataGenerator(5d, SamplingFrequency, 0d);
-
             control = new MicrochartControl();
             control.Chart.SignalPeriod = 1f / SamplingFrequency;
-            control.Chart.Limit = 10 * SamplingFrequency;
 
-            var values = generator.GetNextValues(SamplingFrequency);
-            var points = values
-                .Select(v => (float)v)
-                .ToArray();
-            control.Chart.AddPoints(points);
+            var rnd = new Random();
+            generators = new SinDataGenerator[16];
+            for (int i = 0; i < generators.Length; i++)
+            {
+                generators[i] = new SinDataGenerator(rnd.Next(10, 50), SamplingFrequency, 0);
+                control.Chart.Series.Add(new Series { Limit = 1 * SamplingFrequency });
+            }
 
             var dockPanel = this.FindControl<DockPanel>("dockPanel");
             dockPanel.Children.Add(control);
 
+            var t = new Timer(10);
+            t.Elapsed += (s, e) =>
+            {
+                for (int i = 0; i < control.Chart.Series.Count; i++)
+                {
+                    var rnd = new Random();
+                    var amp = rnd.Next(1, 10);
+                    amp = 1;
+
+                    var values = generators[i].GetNextValues(SamplingFrequency / 100);
+                    
+                    var points = values
+                        .Select(v => (float)v * amp)
+                        .ToArray();
+
+                    control.Chart.Series[i].AddPoints(points);
+                }
+            };
+            t.Start();
+
             var timer = new DispatcherTimer(TimeSpan.FromSeconds(1 / 100d), DispatcherPriority.Normal, (s, e) =>
             {
-                var rnd = new Random();
-                var amp = rnd.Next(1, 10);
-
-                var values = generator.GetNextValues(SamplingFrequency / 100);
-                var points = values
-                    .Select(v => (float)v * amp)
-                    .ToArray();
-                control.Chart.AddPoints(points);
-
                 control.InvalidateVisual();
             });
-            timer.Start();
+            //timer.Start();
         }
     }
 

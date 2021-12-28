@@ -26,11 +26,30 @@ namespace AvaSkia
             var count = Series.Count;
             var height = bounds.Height / count;
 
+            var tasks = new Task[count];
+            var bitmaps = new SKBitmap[count];
+
             for (int i = 0; i < count; i++)
             {
-                var y = i * height;
-                var b = new Rect(bounds.X, y, bounds.Width, height);
-                DrawSeries(canvas, b, Series[i]);
+                var b = new Rect(0, 0, (int)bounds.Width, (int)height);
+                var series = Series[i];
+                var bitmap = new SKBitmap((int)b.Width, (int)b.Height);
+                var c = new SKCanvas(bitmap);
+                c.Save();
+                bitmaps[i] = bitmap;
+
+                tasks[i] = Task.Run(() =>
+                {
+                    DrawSeries(c, b, series);
+                });
+            }
+
+            Task.WaitAll(tasks);
+
+            for (int i = 0; i < count; i++)
+            {
+                var y = (float)(i * height);
+                canvas.DrawBitmap(bitmaps[i], new SKPoint(0f, y));
             }
         }
 

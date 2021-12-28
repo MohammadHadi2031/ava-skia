@@ -68,6 +68,7 @@ namespace AvaSkia
 
                 Chart.Draw(canvas, Bounds);
 
+
                 //if (context is ISkiaDrawingContextImpl skia)
                 //{
                 //    skia.SkCanvas.DrawBitmap(bitmap, (int)Bounds.X, (int)Bounds.Y);

@@ -43,7 +43,7 @@ namespace AvaSkia
             for (int i = 0; i < generators.Length; i++)
             {
                 generators[i] = new SinDataGenerator(rnd.Next(10, 50), SamplingFrequency, 0);
-                control.Chart.Series.Add(new Series { Limit = 1 * SamplingFrequency });
+                control.Chart.Series.Add(new Series(limit: 10 * SamplingFrequency));
             }
 
             var dockPanel = this.FindControl<DockPanel>("dockPanel");
@@ -56,7 +56,7 @@ namespace AvaSkia
                 {
                     var rnd = new Random();
                     var amp = rnd.Next(1, 10);
-                    amp = 1;
+                    //amp = 1;
 
                     var values = generators[i].GetNextValues(SamplingFrequency / 100);
                     

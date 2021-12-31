@@ -36,8 +36,22 @@ namespace AvaSkia
 
         private static void DrawSeries(SKCanvas canvas, Rect bounds, Series series)
         {
+            SKPoint[] screenPoints = GetDownSampledScreenPoints(bounds, series);
+
+            using (var paint = new SKPaint())
+            {
+                paint.Color = SKColors.Blue;
+                paint.StrokeWidth = 1;
+                paint.IsAntialias = true;
+                paint.Style = SKPaintStyle.Stroke;
+                //DrawSignal(canvas, paint, screenPoints);
+                canvas.DrawPoints(SKPointMode.Lines, screenPoints, paint);
+            }
+        }
+
+        private static SKPoint[] GetDownSampledScreenPoints(Rect bounds, Series series)
+        {
             var mergeSize = (int)Math.Floor(series.Limit / bounds.Width);
-            //mergeSize = 1;
             var downSampledPoints = GetDownSampledPoints(series.Points, mergeSize);
 
             var maxY = downSampledPoints.Max(x => x.Y);
@@ -50,21 +64,12 @@ namespace AvaSkia
             var xBias = 0f;
 
             var screenPoints = GetScreenPoints(downSampledPoints, xCoeff, xBias, yCoeff, yBias);
-
-            using (var paint = new SKPaint())
-            {
-                paint.Color = SKColors.Blue;
-                paint.StrokeWidth = 1;
-                paint.IsAntialias = true;
-                paint.Style = SKPaintStyle.Stroke;
-
-                DrawSignal(canvas, paint, screenPoints);
-            }
+            return screenPoints;
         }
 
-        private static SamplePoint[] GetDownSampledPoints(List<float> points, int mergeSize)
+        private static SamplePoint[] GetDownSampledPoints(float[] points, int mergeSize)
         {
-            var pointsCount = points.Count;
+            var pointsCount = points.Length;
 
             var len = 2 * (int)Math.Ceiling(pointsCount / (double)mergeSize);
             var results = new SamplePoint[len];

@@ -29,6 +29,13 @@ namespace AvaSkia
 #if DEBUG
             this.AttachDevTools();
 #endif
+
+            this.Closing += MainWindow_Closing;
+        }
+
+        private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+        {
+            control.Dispose();
         }
 
         private void InitializeComponent()
@@ -43,7 +50,7 @@ namespace AvaSkia
             for (int i = 0; i < generators.Length; i++)
             {
                 generators[i] = new SinDataGenerator(rnd.Next(10, 50), SamplingFrequency, 0);
-                control.Chart.Series.Add(new Series(limit: 10 * SamplingFrequency));
+                control.Chart.AddSeries(limit: 10 * SamplingFrequency);
             }
 
             var dockPanel = this.FindControl<DockPanel>("dockPanel");

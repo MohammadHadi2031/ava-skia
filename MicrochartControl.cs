@@ -11,7 +11,7 @@ using SkiaSharp;
 
 namespace AvaSkia
 {
-    public class MicrochartControl : Control
+    public class MicrochartControl : Control, IDisposable
     {
         private CustomDrawingOperation custom = new CustomDrawingOperation();
         private static Stopwatch controlStopwatch = Stopwatch.StartNew();
@@ -40,6 +40,11 @@ namespace AvaSkia
 
             context.Custom(custom);
             Dispatcher.UIThread.InvokeAsync(InvalidateVisual, DispatcherPriority.Background);
+        }
+
+        public void Dispose()
+        {
+            chart.Dispose();
         }
 
         private class CustomDrawingOperation : ICustomDrawOperation
